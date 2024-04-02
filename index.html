@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastro de Produtos</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        text-align: center;
+      }
+      form {
+        margin-bottom: 20px;
+      }
+      input[type="text"],
+      input[type="number"] {
+        width: calc(100% - 10px);
+        margin-bottom: 10px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      input[type="file"] {
+        width: calc(100%-10px);
+        background-color: #222;
+        color: #eee;
+        margin-bottom: 10px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      .img_preview {
+        width: 100%;
+        height: 30rem;
+        object-fit: cover;
+        /* height: 10rem; */
+      }
+      .file_div {
+        display: flex;
+        flex-direction: column;
+        padding: 0.5rem;
+        width: 100%;
+        background: #ccc;
+        gap: 5px;
+      }
+      input[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      img {
+        max-width: 100px;
+        max-height: 100px;
+      }
+      @media (max-width: 768px) {
+        .container {
+          width: 90%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Cadastro de Produtos</h1>
+      <form id="formProduto">
+        <input
+          type="text"
+          name="name"
+          placeholder="Nome do Produto"
+          required
+        /><br />
+        <input
+          type="number"
+          name="price"
+          placeholder="Valor do Produto"
+          step="0.01"
+          required
+        /><br />
+        <input
+          type="number"
+          name="quantity"
+          placeholder="Quantidade em Estoque"
+          required
+        /><br />
+        <div class="file_div">
+          <input
+            type="file"
+            onchange="loadFile(event)"
+            name="photo"
+            id="foto"
+            accept="image/*"
+            required
+          />
+          <img id="output" class="img_preview" />
+        </div>
+        <br />
+        <input type="submit" value="Cadastrar Produto" />
+      </form>
+      <table id="tabelaProduto">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nome</th>
+            <th>Valor</th>
+            <th>Quantidade</th>
+            <th>Foto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Os dados dos produtos serão inseridos aqui via JavaScript -->
+        </tbody>
+      </table>
+    </div>
+    <script src="funcao.js"></script>
+    <script>
+      const form = document.getElementById("formProduto");
+      const tableBody = document.querySelector("#tabelaProduto tbody");
+
+      var loadFile = function (event) {
+        var reader = new FileReader();
+        reader.onload = function () {
+          var output = document.getElementById("output");
+          output.src = reader.result;
+        };
+        reader.readAsDataURL(event.target.files[0]);
+      };
+
+      function encodeImageFileAsURL(element) {
+        var file = element.files[0];
+        var reader = new FileReader();
+        try {
+          reader.onloadend = function () {
+            console.log("RESULT", reader.result);
+            return reader.result;
+          };
+          reader.readAsDataURL(file);
+        } catch {
+          return "";
+        }
+      }
+
+      // toDataURL(
+      //   "https://www.gravatar.com/avatar/d50c83cc0c6523b4d3f6085295c953e0",
+      //   function (dataUrl) {
+      //     console.log("RESULT:", dataUrl);
+      //   }
+      // );
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const formData = new FormData(this);
+
+        const newRow = document.createElement("tr");
+        let produto = {
+          nome: formData.get("name"),
+          quantidade: formData.get("quantity"),
+          valor: formData.get("price"),
+          foto: document.querySelector("#output").src,
+          // encodeImageFileAsURL(document.getElementById("foto")),
+        };
+        console.log(produto);
+        // console.log(encodeImageFileAsURL(document.getElementById("foto")));
+
+        post_Dados("http://localhost:3000/produto", produto).then((data) => {
+          console.log(data);
+        });
+        newRow.innerHTML = `
+                <td>${formData.get("name")}</td>
+                <td>${formData.get("price")}</td>
+                <td>${formData.get("quantity")}</td>
+                <td><img src="${URL.createObjectURL(
+                  formData.get("photo")
+                )}" alt="Product Image"></td>
+            `;
+        tableBody.appendChild(newRow);
+
+        // this.reset();
+      });
+    </script>
+  </body>
+</html>
